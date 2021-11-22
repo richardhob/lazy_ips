@@ -32,3 +32,4 @@ Original author: Boris Timofeev https://github.com/btimofeev
 Port to Python 3: Hubert Figuière https://github.com/hfiguiere  
 Various fixes: https://github.com/hadess  
 Cleanup and CLI: https://github.com/rekentuig  
+Documentation and Testing: http://github.com/richardhob
