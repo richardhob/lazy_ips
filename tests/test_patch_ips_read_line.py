@@ -5,54 +5,69 @@ import pytest
 
 import lazy_ips.patch.ips as ips_patch
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def fake_file():
     fake = unittest.mock.MagicMock()
     return fake
 
-def test_read_patch_line_record(fake_file):
+RECORD_DATA = [
+        # offset, size, data
+        (1, 1, 2),
+        (10, 5, 99),
+        (0xffffff, 9, 0xff),
+        ]
+
+@pytest.mark.parametrize("offset,size,data", RECORD_DATA)
+def test_read_patch_line_record(fake_file, offset, size, data):
     calls = 0
-    def _valid(offset):
+    def _valid(bytes_to_read):
         nonlocal calls
 
-        # offset, size, data
         if calls == 0:
+            assert bytes_to_read == 3
             calls += 1
-            return bytes([0, 0, 1])
+            return int(offset).to_bytes(3, 'big')
         if calls == 1:
+            assert bytes_to_read == 2
             calls += 1
-            return bytes([0, 1])
+            return int(size).to_bytes(2, 'big')
         if calls == 2:
+            assert bytes_to_read == size
             calls += 1
-            return bytes([2])
+            return int(data).to_bytes(size, 'big')
         
     fake_file.read.side_effect = _valid
     line = ips_patch.read_patch_line(fake_file)
 
-    assert line.offset == 1
-    assert line.data == bytes([2])
+    assert line.offset == offset
+    assert line.data   == int(data).to_bytes(size, 'big')
 
-def test_read_patch_line_rls(fake_file):
+@pytest.mark.parametrize("offset,size,data", RECORD_DATA)
+def test_read_patch_line_rls(fake_file, offset, size, data):
     calls = 0
-    def _valid(offset):
+    def _valid(bytes_to_read):
         nonlocal calls
 
-        # offset, size, data
         if calls == 0:
+            assert bytes_to_read == 3
             calls += 1
-            return bytes([0, 0, 1])
+            return int(offset).to_bytes(3, 'big')
         if calls == 1:
+            assert bytes_to_read == 2
             calls += 1
-            return bytes([0, 0])
+            return int(0).to_bytes(2, 'big')
         if calls == 2:
+            assert bytes_to_read == 2
             calls += 1
-            return bytes([0, 2])
+            return int(size).to_bytes(2, 'big')
         if calls == 3:
+            assert bytes_to_read == 1
             calls += 1
-            return bytes([2])
+            return int(data).to_bytes(1, 'big') 
         
     fake_file.read.side_effect = _valid
     line = ips_patch.read_patch_line(fake_file)
 
-    assert line.offset == 1
-    assert line.data == bytes([2, 2])
+    assert line.offset == offset
+    assert line.data == int(data).to_bytes(1, 'big') * size
+
