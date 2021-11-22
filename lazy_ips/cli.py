@@ -5,7 +5,8 @@ import argparse
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Apply IPS patch to ROM image")
+    parser = argparse.ArgumentParser(
+            description="Apply IPS patch to ROM image")
     parser.add_argument("image_file")
     parser.add_argument("patch_file")
 
@@ -20,7 +21,7 @@ def main():
     try:
         patch = open(args.patch_file, 'rb')
     except Exception as err:
-        print("Error opening {}: {}".format(args.patch_file, err)) 
+        print("Error opening {}: {}".format(args.patch_file, err))
         exit()
 
     try:

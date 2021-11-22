@@ -49,6 +49,7 @@ from struct import unpack
 
 PatchLine = namedtuple('PatchLine', ['offset', 'data'])
 
+
 def read_patch_line(file):
     ''' Read a line from the patch file, and decode the patch data.
 
@@ -120,6 +121,7 @@ def read_patch(file):
             yield data
         else:
             eof = True
+
 
 def apply_patch_line(image, patch_line):
     ''' Apply input line from patch file to the input image.

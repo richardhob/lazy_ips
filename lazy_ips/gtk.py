@@ -6,7 +6,7 @@ import shutil
 from lazy_ips.patch import ips
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+from gi.repository import Gtk  # noqa: E402
 
 
 class LazyIPS:
