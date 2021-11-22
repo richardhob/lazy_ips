@@ -33,3 +33,15 @@ Port to Python 3: Hubert Figuière https://github.com/hfiguiere
 Various fixes: https://github.com/hadess  
 Cleanup and CLI: https://github.com/rekentuig  
 Documentation and Testing: http://github.com/richardhob
+
+Testing
+-------
+
+Testing the IPS functionality is done using Pytest:
+
+``` bash
+> python -m venv venv
+> source venv/bin/activate
+> python -m pip install pytest flake8
+> make
+```
