@@ -49,6 +49,11 @@ from struct import unpack
 
 PatchLine = namedtuple('PatchLine', ['offset', 'data'])
 
+EOF_MARKER = b'EOF'
+OFFSET_SIZE = 3  # bytes
+DATA_LEN_SIZE = 2  # bytes
+RLE_LEN_SIZE = 2  # bytes
+
 
 def read_patch_line(file):
     ''' Read a line from the patch file, and decode the patch data.
@@ -62,36 +67,38 @@ def read_patch_line(file):
     Raises:
         IOError if the Offset or Data is formatted incorrectly
     '''
-    # Constants
-    eof_marker = b'EOF'
-    offset_size = 3
-    data_len_size = 2
-    rle_len_size = 2
+    offset_raw = file.read(OFFSET_SIZE)
+    if len(offset_raw) != OFFSET_SIZE:
+        raise IOError("not enough offset bytes read")
 
-    try:
-        offset_raw = file.read(offset_size)
-        if offset_raw == eof_marker:
-            return None
-        offset = unpack('>l', b'\x00' + offset_raw)[0]
-    except Exception:
-        raise IOError("error reading offset")
+    if offset_raw == EOF_MARKER:
+        return None
+  
+    offset = unpack('>l', b'\x00' + offset_raw)[0]
+    data_len_raw = file.read(DATA_LEN_SIZE)
+    if len(data_len_raw) != DATA_LEN_SIZE:
+        raise IOError("not enough data len bytes read")
 
-    try:
-        data_len_raw = file.read(data_len_size)
-        data_len = unpack('>h', data_len_raw)[0]
+    data_len = unpack('>h', data_len_raw)[0]
 
-        if data_len > 0:
-            data = file.read(data_len)
-            return PatchLine(offset, data)
-
-        # RLE
-        rle_len_raw = file.read(rle_len_size)
-        rle_len = unpack('>h', rle_len_raw)[0]
-        rle_byte = file.read(1)
-        data = rle_byte * rle_len
+    if data_len > 0:
+        data = file.read(data_len)
+        if len(data) != data_len:
+            raise IOError("not enough data bytes read")
         return PatchLine(offset, data)
-    except Exception:
-        raise IOError("error reading data")
+
+    # RLE
+    rle_len_raw = file.read(RLE_LEN_SIZE)
+    if len(rle_len_raw) != RLE_LEN_SIZE:
+        raise IOError("not enough rle data len bytes")
+
+    rle_len = unpack('>h', rle_len_raw)[0]
+    rle_byte = file.read(1)
+    if len(rle_byte) != 1:
+        raise IOError("not enough rle data bytes")
+
+    data = rle_byte * rle_len
+    return PatchLine(offset, data)
 
 
 def read_patch(file):
