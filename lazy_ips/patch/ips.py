@@ -49,7 +49,9 @@ from struct import unpack
 
 PatchLine = namedtuple('PatchLine', ['offset', 'data'])
 
+PATCH_MARKER = b'PATCH'
 EOF_MARKER = b'EOF'
+PATCH_MARKER_SIZE = 5  # bytes
 OFFSET_SIZE = 3  # bytes
 DATA_LEN_SIZE = 2  # bytes
 RLE_LEN_SIZE = 2  # bytes
@@ -73,7 +75,7 @@ def read_patch_line(file):
 
     if offset_raw == EOF_MARKER:
         return None
-  
+
     offset = unpack('>l', b'\x00' + offset_raw)[0]
     data_len_raw = file.read(DATA_LEN_SIZE)
     if len(data_len_raw) != DATA_LEN_SIZE:
@@ -105,7 +107,7 @@ def read_patch(file):
     ''' Read the input patch file, and generate patch line data (offset, data).
 
     Args:
-        input_file (Path): Path to the input patch file
+        input_file (File): Opened patch file
 
     Generates:
         Data from patch file (offset, data)
@@ -113,12 +115,9 @@ def read_patch(file):
     Raises:
         IOError if Patch file is misformatted
     '''
-    # Constant
-    patch_marker = b'PATCH'
-
     # Check marker.
-    data = file.read(len(patch_marker))
-    if data != patch_marker:
+    data = file.read(PATCH_MARKER_SIZE)
+    if data != PATCH_MARKER:
         raise IOError("unknown format")
 
     eof = False
@@ -141,5 +140,6 @@ def apply_patch_line(image, patch_line):
         image.seek(patch_line.offset)
     except Exception:
         # Go to the 0th line from the end of the file (EOF)
+        # why is this here? 
         image.seek(0, 2)
     image.write(patch_line.data)
