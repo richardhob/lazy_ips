@@ -71,3 +71,8 @@ def test_read_patch_line_rls(fake_file, offset, size, data):
     assert line.offset == offset
     assert line.data == int(data).to_bytes(1, 'big') * size
 
+def test_read_patch_line_eof(fake_file):
+    fake_file.read.return_value = b'EOF'
+
+    line = ips_patch.read_patch_line(fake_file)
+    assert line == None
