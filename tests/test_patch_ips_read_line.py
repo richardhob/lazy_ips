@@ -76,3 +76,109 @@ def test_read_patch_line_eof(fake_file):
 
     line = ips_patch.read_patch_line(fake_file)
     assert line == None
+
+def test_read_patch_line_offset_error(fake_file):
+    calls = 0
+    def _valid(bytes_to_read):
+        nonlocal calls
+
+        if calls == 0:
+            calls += 1
+            return int(1).to_bytes(2, 'big')
+        if calls == 1:
+            calls += 1
+            return int(3).to_bytes(1, 'big')
+        if calls == 2:
+            calls += 1
+            return int(2).to_bytes(2, 'big')
+
+    fake_file.read.side_effect = _valid
+
+    with pytest.raises(IOError):
+        ips_patch.read_patch_line(fake_file)
+
+def test_read_patch_line_size_error(fake_file):
+    calls = 0
+    def _valid(bytes_to_read):
+        nonlocal calls
+
+        if calls == 0:
+            calls += 1
+            return int(1).to_bytes(3, 'big')
+        if calls == 1:
+            calls += 1
+            return int(3).to_bytes(1, 'big')
+        if calls == 2:
+            calls += 1
+            return int(2).to_bytes(2, 'big')
+
+    fake_file.read.side_effect = _valid
+
+    with pytest.raises(IOError):
+        ips_patch.read_patch_line(fake_file)
+
+def test_read_patch_line_data_error(fake_file):
+    calls = 0
+    def _valid(bytes_to_read):
+        nonlocal calls
+
+        if calls == 0:
+            calls += 1
+            return int(1).to_bytes(3, 'big')
+        if calls == 1:
+            calls += 1
+            return int(3).to_bytes(2, 'big')
+        if calls == 2:
+            calls += 1
+            return int(2).to_bytes(1, 'big')
+
+    fake_file.read.side_effect = _valid
+
+    with pytest.raises(IOError):
+        ips_patch.read_patch_line(fake_file)
+
+def test_read_patch_line_rle_size_error(fake_file):
+    calls = 0
+    def _valid(bytes_to_read):
+        nonlocal calls
+
+        if calls == 0:
+            calls += 1
+            return int(1).to_bytes(3, 'big')
+        if calls == 1:
+            calls += 1
+            return int(0).to_bytes(2, 'big')
+        if calls == 2:
+            calls += 1
+            return int(2).to_bytes(1, 'big')
+        if calls == 3:
+            calls += 1
+            return int(2).to_bytes(1, 'big')
+
+    fake_file.read.side_effect = _valid
+
+    with pytest.raises(IOError):
+        ips_patch.read_patch_line(fake_file)
+
+def test_read_patch_line_rle_data_error(fake_file):
+    calls = 0
+    def _valid(bytes_to_read):
+        nonlocal calls
+
+        if calls == 0:
+            calls += 1
+            return int(1).to_bytes(3, 'big')
+        if calls == 1:
+            calls += 1
+            return int(0).to_bytes(2, 'big')
+        if calls == 2:
+            calls += 1
+            return int(2).to_bytes(2, 'big')
+        if calls == 3:
+            calls += 1
+            return b''
+
+    fake_file.read.side_effect = _valid
+
+    with pytest.raises(IOError):
+        ips_patch.read_patch_line(fake_file)
