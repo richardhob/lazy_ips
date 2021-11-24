@@ -4,9 +4,6 @@ import subprocess
 
 import pytest
 
-PATH_HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT_PATH = os.path.join(PATH_HERE, '..')
-
 @pytest.fixture(scope="function")
 def image(tmp_path):
     path = tmp_path / "img.bin"
@@ -35,8 +32,7 @@ def simple_patch(tmp_path):
 
 def call(image, patch):
     subprocess.run(
-        "python lazy_ips/cli.py {} {}".format(image, patch),
-        cwd=ROOT_PATH,
+        "python -m lazy_ips.cli {} {}".format(image, patch),
         shell=True,
         check=True)
 
