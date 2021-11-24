@@ -23,6 +23,7 @@ def main():
     try:
         patch = open(args.patch_file, 'rb')
     except Exception as err:
+        image.close()
         print("Error opening {}: {}".format(args.patch_file, err))
         sys.exit(2)
 
