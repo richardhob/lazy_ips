@@ -43,5 +43,6 @@ Testing the IPS functionality is done using Pytest:
 > python -m venv venv
 > source venv/bin/activate
 > python -m pip install pytest flake8
+> python -m pip install -e .
 > make
 ```
