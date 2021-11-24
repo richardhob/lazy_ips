@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
-from lazy_ips.patch import ips
+import sys
 import argparse
+
+from lazy_ips.patch import ips
 
 
 def main():
@@ -16,13 +18,13 @@ def main():
         image = open(args.image_file, 'rb+')
     except Exception as err:
         print("Error opening {}: {}".format(args.image_file, err))
-        exit()
+        sys.exit(1)
 
     try:
         patch = open(args.patch_file, 'rb')
     except Exception as err:
         print("Error opening {}: {}".format(args.patch_file, err))
-        exit()
+        sys.exit(2)
 
     try:
         for patch_line in ips.read_patch(patch):
