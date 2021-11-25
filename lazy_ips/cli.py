@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import shutil
 import sys
 import argparse
 
@@ -11,13 +12,19 @@ def main():
             description="Apply IPS patch to ROM image")
     parser.add_argument("image_file")
     parser.add_argument("patch_file")
+    parser.add_argument("-o", help="Separate output file")
 
     args = parser.parse_args()
 
+    image_file = args.image_file
+    if args.o:
+        shutil.copyfile(args.image_file, args.o)
+        image_file = args.o
+
     try:
-        image = open(args.image_file, 'rb+')
+        image = open(image_file, 'rb+')
     except Exception as err:
-        print("Error opening {}: {}".format(args.image_file, err))
+        print("Error opening {}: {}".format(image_file, err))
         sys.exit(1)
 
     try:
