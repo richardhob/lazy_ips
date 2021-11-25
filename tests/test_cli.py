@@ -16,6 +16,11 @@ def image(tmp_path):
     return path
 
 @pytest.fixture(scope="function")
+def output(tmp_path):
+    path = tmp_path / "output.bin"
+    return path
+
+@pytest.fixture(scope="function")
 def no_patch(tmp_path):
     path = tmp_path / "no_patch.ips"
     return path
@@ -85,6 +90,12 @@ def call(image, patch):
         shell=True,
         check=True)
 
+def call_output(image, patch, output):
+    subprocess.run(
+        "python -m lazy_ips.cli {} {} -o {}".format(image, patch, output),
+        shell=True,
+        check=True)
+
 def test_cli_no_files(no_patch):
     with pytest.raises(subprocess.CalledProcessError):
         call(no_patch, no_patch)
@@ -116,5 +127,20 @@ def test_cli_patch3(image, patch3):
     call(image, patch3)
 
     with open(image, 'rb') as input_file:
+        value = input_file.read(800)
+        assert value == bytes(800 * [0])
+
+def test_cli_output_patch3(image, patch3, output):
+    with open(image, 'rb') as input_file:
+        before = input_file.readlines()
+
+    call_output(image, patch3, output)
+
+    with open(image, 'rb') as input_file:
+        after = input_file.readlines()
+
+    assert before == after
+
+    with open(output, 'rb') as input_file:
         value = input_file.read(800)
         assert value == bytes(800 * [0])
