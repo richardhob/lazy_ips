@@ -71,7 +71,10 @@ def read_patch_line(patch_file):
     '''
     offset_raw = patch_file.read(OFFSET_SIZE)
     if len(offset_raw) != OFFSET_SIZE:
-        raise IOError("not enough offset bytes read")
+        offset_int = int.from_bytes(offset_raw, 'big')
+        raise IOError(' '.join([
+            'not enough offset bytes read',
+            '(0x{:X})'.format(offset_int)]))
 
     if offset_raw == EOF_MARKER:
         return None
@@ -79,14 +82,28 @@ def read_patch_line(patch_file):
     offset = unpack('>l', b'\x00' + offset_raw)[0]
     data_len_raw = patch_file.read(DATA_LEN_SIZE)
     if len(data_len_raw) != DATA_LEN_SIZE:
-        raise IOError("not enough data len bytes read")
+        offset_int = int.from_bytes(offset_raw, 'big')
+        size_int = int.from_bytes(data_len_raw, 'big')
+        raise IOError(' '.join([
+            'not enough data len bytes read',
+            '(offset, size)',
+            '(0x{:X}, 0x{:X})'.format(offset_int, size_int)]))
 
     data_len = unpack('>h', data_len_raw)[0]
 
     if data_len > 0:
         data = patch_file.read(data_len)
         if len(data) != data_len:
-            raise IOError("not enough data bytes read")
+            offset_int = int.from_bytes(offset_raw, 'big')
+            size_int = int.from_bytes(data_len_raw, 'big')
+            data_int = int.from_bytes(data, 'big')
+            raise IOError(' '.join([
+                "not enough data bytes read",
+                '(offset, size, data)',
+                '(0x{:X} 0x{:X} 0x{:X})'.format(
+                    offset_int,
+                    size_int,
+                    data_int)]))
         return PatchLine(offset, data)
 
     # RLE
